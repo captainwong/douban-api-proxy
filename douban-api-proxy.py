@@ -28,6 +28,25 @@ def soup_find_span_a(soup, span):
     else:
         return []
 
+def get_rating(soup):
+    try:
+        div = soup.find_all(class_="rating_self clearfix", typeof="v:Rating")[0]
+        strong = div.find_all('strong', class_=re.compile("ll rating_num.*?"), property="v:average")[0]
+        average = strong.string.strip()
+        span = div.find_all('span', property="v:votes")[0]
+        numRaters = span.string.strip()
+        return {
+            "max": 10,
+            "numRaters": numRaters,
+            "average": average,
+            "min": 0
+        }
+
+    except Exception as e:
+        print(e)
+        return {}
+        
+
 def parse_book_html_return_json(id, html):
     """根据豆瓣图书HTML解析JSON"""
     soup = BeautifulSoup(html, "html.parser")
@@ -53,6 +72,7 @@ def parse_book_html_return_json(id, html):
     translator = soup_find_span_a(info, re.compile('.*?译者'))
     publisher = re_find('<span.*?>出版社.*?</span>(.+)<br', sinfo)    
     pubdate = re_find('<span.*?>出版年.*?</span>(.+)<br', sinfo)   
+    rating = get_rating(soup)
 
     pass
 
