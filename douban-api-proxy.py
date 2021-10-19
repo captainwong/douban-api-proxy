@@ -4,7 +4,6 @@ from flask import Flask, request
 from urllib import parse
 import requests
 import re
-from urllib import parse
 from decrypt import decrypt
 from cache import cache
 from parse import parse_book_html_return_json
