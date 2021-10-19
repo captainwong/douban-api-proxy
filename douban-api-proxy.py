@@ -45,6 +45,20 @@ def get_rating(soup):
     except Exception as e:
         print(e)
         return {}
+
+def get_tags(soup):
+    try:
+        div = soup.find_all('div', id="db-tags-section", class_="blank20")[0]
+        tags = []
+        for a in div.find_all('a', class_=re.compile('.*?tag')):
+            tags.append({
+                "count":0,
+                "name": a.string.strip()
+            })
+        return tags
+    except Exception as e:
+        print(e)
+        return []
         
 
 def parse_book_html_return_json(id, html):
@@ -73,6 +87,7 @@ def parse_book_html_return_json(id, html):
     publisher = re_find('<span.*?>出版社.*?</span>(.+)<br', sinfo)    
     pubdate = re_find('<span.*?>出版年.*?</span>(.+)<br', sinfo)   
     rating = get_rating(soup)
+    tags = get_tags(soup)
 
     pass
 
