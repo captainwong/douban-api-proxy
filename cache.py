@@ -29,7 +29,7 @@ class cache:
                 j = json.loads(d)
                 return j
         except Exception as e:
-            print('get_cacked_book_info', e)
+            print('get_cached_book_info', e)
         return False
 
     def cache_book_html(self, id, html):
@@ -44,7 +44,7 @@ class cache:
                 d = f.read()
                 return d
         except Exception as e:
-            print('get_cacked_book_html', e)
+            print('get_cached_book_html', e)
         return False
 
 
@@ -55,6 +55,14 @@ class cache:
             json.dump(ids, f, ensure_ascii=False, indent=4)
 
     def get_cached_search_result_ids(self, q):
-        pass
+        hq = hash_q(q)
+        path = os.path.join(self.cache_dir_search_, hq + ".json")
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                j = json.load(f)
+                return j
+        except Exception as e:
+            print('get_cached_search_result_ids, cache not exists', q, e)
+        return False
 
 

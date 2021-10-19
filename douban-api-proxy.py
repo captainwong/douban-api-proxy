@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.debug = False
 
 headers = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.81 Safari/537.36'
 }
 
 gcache = cache('.cache')
@@ -45,13 +45,14 @@ def get_book_info(id):
         print('get_book_info', e)
         return False
 
-# 获取图书信息
+
 @app.route('/v2/book/<id>', methods=['GET'])
 def get(id):
+    """获取图书信息"""
     try:
         info = get_book_info(id)
         info["success"] = True
-        info["message"] = ""
+        info["message"] = "success"
         return info
     except Exception as e:
         return {
@@ -59,16 +60,21 @@ def get(id):
             "message": str(e)
         }
 
-# 搜索图书
+
 @app.route('/v2/book/search', methods=['GET'])
 def search():
+    """搜索图书"""
     try:
         q = parse.unquote(request.args.get("q"))
-        url = 'https://search.douban.com/book/subject_search?search_text={}&cat=1001'.format(q)       
-        resp = requests.get(url=url, headers=headers)
-        encrypt_data = re.findall('window.__DATA__ = "(.+?)"', resp.text)[0]
-        data = decrypt(encrypt_data)
-        ids = [str(item["id"]) for item in data["payload"]["items"]]
+        ids = gcache.get_cached_search_result_ids(q)
+        if not ids:
+            url = 'https://search.douban.com/book/subject_search?search_text={}&cat=1001'.format(q)       
+            resp = requests.get(url=url, headers=headers)
+            encrypt_data = re.findall('window.__DATA__ = "(.+?)"', resp.text)[0]
+            data = decrypt(encrypt_data)
+            ids = [str(item["id"]) for item in data["payload"]["items"]]
+            gcache.cache_search_result_ids(q, ids)
+
         books = []
         for id in ids:
             book = get_book_info(id)
@@ -76,7 +82,7 @@ def search():
                 books.append(book)
         return {
             "success": True,
-            "message": "",
+            "message": "success",
             "start": 0,
             "count": len(books),
             "total": len(books),

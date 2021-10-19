@@ -18,10 +18,13 @@ def soup_find_span_a(soup, span):
 def get_rating(soup):
     try:
         div = soup.find_all(class_="rating_self clearfix", typeof="v:Rating")[0]
-        strong = div.find_all('strong', class_=re.compile("ll rating_num.*?"), property="v:average")[0]
+        strong = div.find_all('strong', class_=re.compile("ll rating_num.*?"), property="v:average")
+        if len(strong) == 0: return {}
+        strong = strong[0]
         average = strong.string.strip()
-        span = div.find_all('span', property="v:votes")[0]
-        numRaters = span.string.strip()
+        spans = div.find_all('span', property="v:votes")
+        if len(spans) == 0: return {}
+        numRaters = spans[0].string.strip()
         return {
             "max": 10,
             "numRaters": numRaters,
@@ -50,12 +53,14 @@ def get_tags(soup):
 def get_series(sinfo):
     try:
         res = re.findall('<span.*?>丛书.*?</span>.*?<a.*?href="(.+)">(.+)</a>', sinfo)   
-        id = res[0][0].split('/')[-1]
-        name = res[0][1].strip()
-        return {
-            'id': id,
-            'name': name
-        }    
+        if len(res) > 0:
+            id = res[0][0].split('/')[-1]
+            name = res[0][1].strip()
+            return {
+                'id': id,
+                'name': name
+            }
+        return {}
     except Exception as e:
         print('get_series', e)
         return {}
@@ -63,9 +68,23 @@ def get_series(sinfo):
 def get_intros(soup):
     try:
         intros = soup.find_all('div', class_='intro')
-        summary = intros[0].find_all('p')[0].string.strip()
-        author_intro = ' '.join(intros[1].find_all('p')[0].string.strip().split())
-        return author_intro, summary
+        if len(intros) > 1:
+            summary = intros[0].find_all('p')[0].string.strip()
+            author_intro = ' '.join(intros[1].find_all('p')[0].string.strip().split())
+            return author_intro, summary
+        elif len(intros) == 1:
+            intro = intros[0].find_all('p')[0].string.strip()
+            h2s = soup.find_all('h2')
+            for h2 in h2s:
+                spans = h2.find_all('span')
+                for span in spans:
+                    if span.string == '内容简介':
+                        return intro, ''
+                    elif span.string == '作者简介':
+                        return '', intro
+            # failed, 当成作者简介
+            return '', intro
+        else: return '', ''
 
     except Exception as e:
         print('get_intros', e)
@@ -73,13 +92,16 @@ def get_intros(soup):
 
 def get_catalog(soup):
     try:
-        div = str(soup.find_all('div', class_="indent", id=re.compile("dir_\\d+_full"), style="display:none")[0].text)
-        res = div.split('\n')
-        res = [i.replace('　', ' ').strip() for i in res]
-        res = [i for i in res if i][:-1] # 移除 '· · · · · · (收起)'
-        s = '\n'.join(res)
-        s += '\n'
-        return s
+        divs = soup.find_all('div', class_="indent", id=re.compile("dir_\\d+_full"), style="display:none")
+        if len(divs) > 0:
+            div = str(divs[0].text)
+            res = div.split('\n')
+            res = [i.replace('　', ' ').strip() for i in res]
+            res = [i for i in res if i][:-1] # 移除 '· · · · · · (收起)'
+            s = '\n'.join(res)
+            s += '\n'
+            return s
+        return ''
     except Exception as e:
         print('get_catalog', e)
         return ''
