@@ -73,6 +73,18 @@ def get_series(sinfo):
         print(e)
         return {}
 
+def get_intros(soup):
+    try:
+        intros = soup.find_all('div', class_='intro')
+        summary = intros[0].find_all('p')[0].string.strip()
+        author_intro = ' '.join(intros[1].find_all('p')[0].string.strip().split())
+        return author_intro, summary
+
+    except Exception as e:
+        print(e)
+        return '', ''
+
+
 def parse_book_html_return_json(id, html):
     """根据豆瓣图书HTML解析JSON"""
     soup = BeautifulSoup(html, "html.parser")
@@ -103,6 +115,8 @@ def parse_book_html_return_json(id, html):
     binding = re_find('<span.*?>装帧.*?</span>(.+)<br', sinfo)   
     price = re_find('<span.*?>定价.*?</span>(.+)<br', sinfo)   
     series = get_series(sinfo)
+    pages = re_find('<span.*?>页数.*?</span>(.+)<br', sinfo)   
+    author_intro, summary = get_intros(soup)
 
     pass
 
