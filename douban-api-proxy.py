@@ -60,6 +60,18 @@ def get_tags(soup):
         print(e)
         return []
         
+def get_series(sinfo):
+    try:
+        res = re.findall('<span.*?>丛书.*?</span>.*?<a.*?href="(.+)">(.+)</a>', sinfo)   
+        id = res[0][0].split('/')[-1]
+        name = res[0][1].strip()
+        return {
+            'id': id,
+            'name': name
+        }    
+    except Exception as e:
+        print(e)
+        return {}
 
 def parse_book_html_return_json(id, html):
     """根据豆瓣图书HTML解析JSON"""
@@ -88,6 +100,9 @@ def parse_book_html_return_json(id, html):
     pubdate = re_find('<span.*?>出版年.*?</span>(.+)<br', sinfo)   
     rating = get_rating(soup)
     tags = get_tags(soup)
+    binding = re_find('<span.*?>装帧.*?</span>(.+)<br', sinfo)   
+    price = re_find('<span.*?>定价.*?</span>(.+)<br', sinfo)   
+    series = get_series(sinfo)
 
     pass
 
