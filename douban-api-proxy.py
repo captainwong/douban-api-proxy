@@ -1,16 +1,19 @@
 # -*- coding:utf-8 -*-
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from urllib import parse
 import requests
 import re
 from decrypt import decrypt
 from cache import cache
 from parse import parse_book_html_return_json
+import json
 
 requests.packages.urllib3.disable_warnings()
 
 app = Flask(__name__)
+CORS(app, resources=r'/*')
 app.debug = False
 
 headers = {
@@ -65,6 +68,7 @@ def search():
     """搜索图书"""
     try:
         q = parse.unquote(request.args.get("q"))
+        callback = request.args.get('callback')
         ids = gcache.get_cached_search_result_ids(q)
         if not ids:
             url = 'https://search.douban.com/book/subject_search?search_text={}&cat=1001'.format(q)       
@@ -79,7 +83,8 @@ def search():
             book = get_book_info(id)
             if book:
                 books.append(book)
-        return {
+
+        data = {
             "success": True,
             "message": "success",
             "start": 0,
@@ -87,6 +92,12 @@ def search():
             "total": len(books),
             "books": books
         }
+
+        if callback:
+            response = callback + '(' + json.dumps(data) + ')'
+        else:
+            response = jsonify(data)      
+        return response
 
     except Exception as e:
         return {

@@ -50,17 +50,17 @@ class cache:
 
     def cache_search_result_ids(self, q, ids):
         q = hash_q(q)
-        path = os.path.join(self.cache_dir_search_, q + ".json")
+        path = os.path.join(self.cache_dir_search_, q + ".txt")
         with open(path, 'w', encoding='utf-8') as f:
-            json.dump(ids, f, ensure_ascii=False, indent=4)
+            f.write(','.join(ids))
 
     def get_cached_search_result_ids(self, q):
         hq = hash_q(q)
-        path = os.path.join(self.cache_dir_search_, hq + ".json")
+        path = os.path.join(self.cache_dir_search_, hq + ".txt")
         try:
             with open(path, 'r', encoding='utf-8') as f:
-                j = json.load(f)
-                return j
+                ids = f.read()
+                return ids.split(',')
         except Exception as e:
             print('get_cached_search_result_ids, cache not exists', q, e)
         return False

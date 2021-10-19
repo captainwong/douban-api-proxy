@@ -43,6 +43,7 @@ def get_tags(soup):
         for a in div.find_all('a', class_=re.compile('.*?tag')):
             tags.append({
                 "count":0,
+                "title": a.string.strip(),
                 "name": a.string.strip()
             })
         return tags
