@@ -120,6 +120,7 @@ def parse_book_html_return_json(id, html):
     author_intro, summary = get_intros(soup)    
 
     return {
+        "id": id,
         "isbn13": isbn13,
         "isbn10" : isbn13[3:],
         "title" : soup.find_all('meta', property="og:title")[0].attrs['content'],
